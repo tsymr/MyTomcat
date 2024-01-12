@@ -7,4 +7,3 @@
 6. main方法新建一个ServiceSocket监听本地端口，遇到请求链接则启动新的线程进入HttpRequestHandler
 7. 在HttpRequestHandler中根据InputStream和OutputStream完成HttpRequest 和 HttpResponse的初始化
 8. 根据HttpRequest中的uri获取到相应的servlet实例，调用servlet实例server()方法完成对请求的处理
-9. 
