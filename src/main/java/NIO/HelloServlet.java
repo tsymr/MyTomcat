@@ -19,6 +19,7 @@ public class HelloServlet extends NIOServletImpl {
     @Override
     public void doPost(NIORequest request, NIOResponse response) {
         try {
+            System.out.println("body = " + request.getBody().replaceAll(" ", ""));
             response.write("Hello NIO POST");
         } catch (IOException e) {
             throw new RuntimeException(e);

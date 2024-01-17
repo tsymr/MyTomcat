@@ -16,6 +16,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -57,7 +58,7 @@ public class NIOServer {
         serverSocketChannel.bind(new InetSocketAddress(port));
         serverSocketChannel.accept();
 
-        SelectionKey register = serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 
         System.out.println("NIO Tomcat is Running on port:" + port);
 
@@ -82,14 +83,10 @@ public class NIOServer {
                         doRead(selectionKey);
                     } else if (selectionKey.isReadable()) {
                         requests.add(new NIORequest(selectionKey));
-                        if (selectionKey.isValid()) {
-                            selectionKey.interestOps(SelectionKey.OP_WRITE);
-                        }
+                        selectionKey.interestOps(SelectionKey.OP_WRITE);
                     } else if (selectionKey.isWritable()) {
                         responses.add(new NIOResponse(selectionKey));
-                        if (selectionKey.isValid()) {
-                            selectionKey.interestOps(SelectionKey.OP_READ);
-                        }
+                        selectionKey.interestOps(SelectionKey.OP_READ);
                     }
                     if (!requests.isEmpty() && !responses.isEmpty()) {
                         doPath(requests.poll(), responses.poll());
@@ -139,21 +136,21 @@ public class NIOServer {
         }
     }
 
-    private void doRead(SelectionKey selectionKey) {
+    private void doRead(SelectionKey selectionKey) throws IOException {
         ServerSocketChannel serverSocketChannel = (ServerSocketChannel) selectionKey.channel();
-        SocketChannel socketChannel = null;
+        SocketChannel socketChannel;
         try {
             socketChannel = serverSocketChannel.accept();
             socketChannel.configureBlocking(false);
             socketChannel.register(selector, SelectionKey.OP_READ);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new IOException(e);
         }
     }
 
     private void initServlet() {
         //获取编译后的文件锁在classPath
-        String path = NIOTomcat.class.getResource("/").getPath();
+        String path = Objects.requireNonNull(NIOTomcat.class.getResource("/")).getPath();
         String xmlPath = path + "web.xml";
         // 新建xml读取器
         SAXReader saxReader = new SAXReader();

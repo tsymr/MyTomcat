@@ -10,6 +10,8 @@ public class NIORequest {
     private String method;
     private String url;
 
+    private String body;
+
     public NIORequest(SelectionKey selectionKey) throws IOException {
         SocketChannel channel = (SocketChannel) selectionKey.channel();
         ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -17,10 +19,14 @@ public class NIORequest {
         buffer.flip();
         String request = new String(buffer.array()).trim();
         if (!request.isEmpty()) {
-            System.out.println("request = " + request);
             String requestHeaders = request.split("\n")[0];
             url = requestHeaders.split("\\s")[1].split("\\?")[0];
             method = requestHeaders.split("\\s")[0];
+            if ("POST".equalsIgnoreCase(method)) {
+                String temp = request.replaceAll("[\t\n\r]", "");
+                int bodyStartIndex = temp.indexOf("{");
+                body = temp.substring(bodyStartIndex);
+            }
         }
 
     }
@@ -31,6 +37,10 @@ public class NIORequest {
 
     public String getUrl() {
         return url;
+    }
+
+    public String getBody() {
+        return body;
     }
 
     @Override
